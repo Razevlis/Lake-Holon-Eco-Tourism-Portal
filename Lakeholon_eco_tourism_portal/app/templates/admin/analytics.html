@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Data Analytics - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block admin-sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_activities') }}">
+                            <i class="fas fa-hiking me-2"></i> Activities
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_guides') }}">
+                            <i class="fas fa-user-tie me-2"></i> Guides
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_bookings') }}">
+                            <i class="fas fa-calendar-check me-2"></i> Bookings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_users') }}">
+                            <i class="fas fa-users me-2"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_recommendations') }}">
+                            <i class="fas fa-star me-2"></i> Recommendations
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.analytics') }}">
+                            <i class="fas fa-chart-bar me-2"></i> Analytics
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Data Analytics</h1>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="refreshAnalytics()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_users }}</h3>
+                        <p class="mb-0">Total Users</p>
+                        <small>+{{ new_users_7_days }} this week</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_bookings }}</h3>
+                        <p class="mb-0">Total Bookings</p>
+                        <small>+{{ bookings_7_days }} this week</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>${{ "%.0f"|format(total_revenue) }}</h3>
+                        <p class="mb-0">Total Revenue</p>
+                        <small>+${{ "%.0f"|format(revenue_7_days) }} this week</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ admin_users }}</h3>
+                        <p class="mb-0">Admin Users</p>
+                        <small>{{ (admin_users/total_users*100)|round(1) }}% of total</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 1 -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Daily Bookings (Last 30 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="dailyBookingsChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Booking Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="bookingStatusChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Monthly Revenue (Last 12 Months)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="monthlyRevenueChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">User Growth</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userGrowthChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Performance -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Top Activities by Bookings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Activity</th>
+                                            <th>Bookings</th>
+                                            <th>Revenue</th>
+                                            <th>Avg Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for activity in activity_stats %}
+                                        <tr>
+                                            <td>{{ activity.name }}</td>
+                                            <td>{{ activity.booking_count }}</td>
+                                            <td>${{ "%.2f"|format(activity.revenue or 0) }}</td>
+                                            <td>${{ "%.2f"|format((activity.revenue or 0) / activity.booking_count) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Statistics -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">User Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p><strong>Total Users:</strong> {{ total_users }}</p>
+                                    <p><strong>Admin Users:</strong> {{ admin_users }}</p>
+                                    <p><strong>Regular Users:</strong> {{ total_users - admin_users }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p><strong>New this week:</strong> {{ new_users_7_days }}</p>
+                                    <p><strong>New this month:</strong> {{ new_users_30_days }}</p>
+                                    <p><strong>Growth Rate:</strong> {{ ((new_users_30_days / total_users * 100) if total_users > 0 else 0)|round(2) }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Booking Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p><strong>Total Bookings:</strong> {{ total_bookings }}</p>
+                                    <p><strong>This week:</strong> {{ bookings_7_days }}</p>
+                                    <p><strong>This month:</strong> {{ bookings_30_days }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p><strong>Total Revenue:</strong> ${{ "%.2f"|format(total_revenue) }}</p>
+                                    <p><strong>This week:</strong> ${{ "%.2f"|format(revenue_7_days) }}</p>
+                                    <p><strong>This month:</strong> ${{ "%.2f"|format(revenue_30_days) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Daily Bookings Chart
+    const dailyBookingsCtx = document.getElementById('dailyBookingsChart').getContext('2d');
+    const dailyBookingsData = {{ daily_bookings|tojson|safe }};
+    new Chart(dailyBookingsCtx, {
+        type: 'line',
+        data: {
+            labels: dailyBookingsData.map(d => d.date),
+            datasets: [{
+                label: 'Daily Bookings',
+                data: dailyBookingsData.map(d => d.count),
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Booking Status Chart
+    const bookingStatusCtx = document.getElementById('bookingStatusChart').getContext('2d');
+    const bookingStatusData = {{ booking_status_stats|tojson|safe }};
+    new Chart(bookingStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: bookingStatusData.map(d => d.status),
+            datasets: [{
+                data: bookingStatusData.map(d => d.count),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Monthly Revenue Chart
+    const monthlyRevenueCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+    const monthlyRevenueData = {{ monthly_revenue|tojson|safe }};
+    new Chart(monthlyRevenueCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyRevenueData.map(d => d.month),
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: monthlyRevenueData.map(d => d.revenue),
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // User Growth Chart
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    new Chart(userGrowthCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Admin Users', 'Regular Users'],
+            datasets: [{
+                data: [{{ admin_users }}, {{ total_users - admin_users }}],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Refresh analytics function
+    function refreshAnalytics() {
+        location.reload();
+    }
+</script>
+{% endblock %}

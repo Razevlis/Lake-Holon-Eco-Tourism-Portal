@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ guide.name }} - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if guide.image_url %}
+                    <img src="{{ guide.image_url }}" class="rounded-circle mb-4" alt="{{ guide.name }}" style="width: 200px; height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 200px; height: 200px;">
+                        <i class="fas fa-user fa-4x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <h1 class="card-title">{{ guide.name }}</h1>
+                    <p class="lead">{{ guide.specialization }}</p>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            {% for i in range(guide.rating|int) %}
+                            <i class="fas fa-star text-warning fa-2x"></i>
+                            {% endfor %}
+                            {% if guide.rating < 5 %}
+                                {% for i in range(5 - guide.rating|int) %}
+                                <i class="far fa-star text-warning fa-2x"></i>
+                                {% endfor %}
+                            {% endif %}
+                            <span class="h4 text-muted ms-2">{{ guide.rating }}</span>
+                        </div>
+                        <p class="text-muted"><strong>{{ guide.experience_years }} years experience</strong></p>
+                    </div>
+                    
+                    {% if guide.bio %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">About</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>{{ guide.bio }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Contact Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <strong><i class="fas fa-envelope"></i> Email:</strong><br>
+                                            <a href="mailto:{{ guide.email }}">{{ guide.email }}</a>
+                                        </li>
+                                        <li class="mb-2">
+                                            <strong><i class="fas fa-phone"></i> Phone:</strong><br>
+                                            {{ guide.phone }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Availability</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if guide.is_available %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle"></i> Available for bookings
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-clock"></i> Currently unavailable
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if guide.is_available %}
+                                    <a href="{{ url_for('booking.create_booking') }}" class="btn btn-primary btn-lg w-100 mt-3">Book This Guide</a>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-lg w-100 mt-3" disabled>Currently Unavailable</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Guide Information</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <strong>Specialization:</strong><br>
+                            <span class="badge bg-primary">{{ guide.specialization }}</span>
+                        </li>
+                        <li class="mb-3">
+                            <strong>Experience:</strong><br>
+                            {{ guide.experience_years }} years
+                        </li>
+                        <li class="mb-3">
+                            <strong>Rating:</strong><br>
+                            <div class="d-flex align-items-center">
+                                {% for i in range(guide.rating|int) %}
+                                <i class="fas fa-star text-warning"></i>
+                                {% endfor %}
+                                {% if guide.rating < 5 %}
+                                    {% for i in range(5 - guide.rating|int) %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endfor %}
+                                {% endif %}
+                                <span class="ms-2">{{ guide.rating }}/5.0</span>
+                            </div>
+                        </li>
+                        <li class="mb-3">
+                            <strong>Availability:</strong><br>
+                            {% if guide.is_available %}
+                            <span class="badge bg-success">Available</span>
+                            {% else %}
+                            <span class="badge bg-warning">Unavailable</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Bookings</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">This guide's recent bookings and activities.</p>
+                    <!-- You can add recent bookings here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

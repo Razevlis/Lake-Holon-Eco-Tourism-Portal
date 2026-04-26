@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Accommodations - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">Accommodations</h1>
+            <p class="lead text-muted">Find the perfect place to stay</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="">All Types</option>
+                                {% for type in types %}
+                                <option value="{{ type }}" {% if type == current_type %}selected{% endif %}>
+                                    {{ type.title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ url_for('main.accommodations') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Accommodations Grid -->
+    <div class="row">
+        {% for accommodation in accommodations.items %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                {% if accommodation.image_url %}
+                <img src="{{ accommodation.image_url }}" class="card-img-top" alt="{{ accommodation.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-home fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ accommodation.name }}</h5>
+                    <p class="card-text">{{ accommodation.description[:100] }}{% if accommodation.description|length > 100 %}...{% endif %}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-secondary">{{ accommodation.type.title() }}</span>
+                        <span class="text-muted"><i class="fas fa-users"></i> Max {{ accommodation.max_occupancy }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 text-primary mb-0">${{ accommodation.price_per_night }}/night</span>
+                        <a href="{{ url_for('main.accommodation_detail', id=accommodation.id) }}" class="btn btn-outline-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if accommodations.pages > 1 %}
+    <nav aria-label="Accommodations pagination">
+        <ul class="pagination justify-content-center">
+            {% if accommodations.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.accommodations', page=accommodations.prev_num, type=current_type) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in accommodations.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != accommodations.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.accommodations', page=page_num, type=current_type) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if accommodations.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.accommodations', page=accommodations.next_num, type=current_type) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

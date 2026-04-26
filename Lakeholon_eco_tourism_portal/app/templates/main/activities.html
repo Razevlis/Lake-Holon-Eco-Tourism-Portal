@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Activities - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">Activities</h1>
+            <p class="lead text-muted">Discover amazing adventures around Lake Holon</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category[0] }}" {% if category[0] == current_category %}selected{% endif %}>
+                                    {{ category[0]|title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="">All Difficulties</option>
+                                {% for difficulty in difficulties %}
+                                <option value="{{ difficulty }}" {% if difficulty == current_difficulty %}selected{% endif %}>
+                                    {{ difficulty.title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ url_for('main.activities') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activities Grid -->
+    <div class="row">
+        {% for activity in activities.items %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card activity-card h-100">
+                {% if activity.image_url %}
+                <img src="{{ activity.image_url }}" class="card-img-top" alt="{{ activity.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ activity.name }}</h5>
+                    <p class="card-text">{{ activity.description[:120] }}{% if activity.description|length > 120 %}...{% endif %}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge difficulty-badge difficulty-{{ activity.difficulty }}">{{ activity.difficulty.title() }}</span>
+                        <span class="badge bg-secondary">{{ activity.category.title() }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted"><i class="fas fa-clock"></i> {{ activity.duration_hours }}h</span>
+                        <span class="text-muted"><i class="fas fa-users"></i> Max {{ activity.max_participants }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 text-primary mb-0">${{ activity.price }}</span>
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('booking.create_booking', activity_id=activity.id) }}" class="btn btn-primary btn-sm">Book Now</a>
+                        {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-sm">Login to Book</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('main.activity_detail', id=activity.id) }}" class="btn btn-outline-secondary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if activities.pages > 1 %}
+    <nav aria-label="Activities pagination">
+        <ul class="pagination justify-content-center">
+            {% if activities.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.activities', page=activities.prev_num, category=current_category, difficulty=current_difficulty) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in activities.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != activities.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.activities', page=page_num, category=current_category, difficulty=current_difficulty) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if activities.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.activities', page=activities.next_num, category=current_category, difficulty=current_difficulty) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Personalized Recommendations - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold mb-4">Personalized Recommendations</h1>
+            <p class="lead mb-4">Discover activities and guides tailored to your preferences</p>
+        </div>
+    </div>
+
+    <!-- Preference Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('recommendations.get_recommendations') }}">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="category" class="form-label">Activity Category</label>
+                                <select name="category" id="category" class="form-select">
+                                    <option value="">All Categories</option>
+                                    <option value="hiking" {% if preferences.category == 'hiking' %}selected{% endif %}>Hiking</option>
+                                    <option value="photography" {% if preferences.category == 'photography' %}selected{% endif %}>Photography</option>
+                                    <option value="cultural" {% if preferences.category == 'cultural' %}selected{% endif %}>Cultural Tours</option>
+                                    <option value="camping" {% if preferences.category == 'camping' %}selected{% endif %}>Camping</option>
+                                    <option value="wildlife" {% if preferences.category == 'wildlife' %}selected{% endif %}>Wildlife Watching</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="difficulty" class="form-label">Difficulty Level</label>
+                                <select name="difficulty" id="difficulty" class="form-select">
+                                    <option value="">All Levels</option>
+                                    <option value="easy" {% if preferences.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+                                    <option value="moderate" {% if preferences.difficulty == 'moderate' %}selected{% endif %}>Moderate</option>
+                                    <option value="hard" {% if preferences.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="duration" class="form-label">Duration</label>
+                                <select name="duration" id="duration" class="form-select">
+                                    <option value="">Any Duration</option>
+                                    <option value="half_day" {% if preferences.duration == 'half_day' %}selected{% endif %}>Half Day</option>
+                                    <option value="full_day" {% if preferences.duration == 'full_day' %}selected{% endif %}>Full Day</option>
+                                    <option value="multi_day" {% if preferences.duration == 'multi_day' %}selected{% endif %}>Multi-Day</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="budget" class="form-label">Budget Range</label>
+                                <select name="budget" id="budget" class="form-select">
+                                    <option value="">Any Budget</option>
+                                    <option value="low" {% if preferences.budget == 'low' %}selected{% endif %}>Low ($0-$50)</option>
+                                    <option value="medium" {% if preferences.budget == 'medium' %}selected{% endif %}>Medium ($50-$150)</option>
+                                    <option value="high" {% if preferences.budget == 'high' %}selected{% endif %}>High ($150+)</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Get Recommendations
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommended Activities -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 mb-4">Recommended Activities</h2>
+            {% if activities %}
+                <div class="row">
+                    {% for activity in activities %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 activity-card">
+                            {% if activity.image_url %}
+                            <img src="{{ activity.image_url }}" class="card-img-top" alt="{{ activity.name }}">
+                            {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                <i class="fas fa-hiking fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ activity.name }}</h5>
+                                <p class="card-text">{{ activity.description[:100] }}{% if activity.description|length > 100 %}...{% endif %}</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-primary">{{ activity.category.title() }}</span>
+                                        <span class="badge bg-secondary">{{ activity.difficulty.title() }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="h5 text-primary">${{ activity.price }}</span>
+                                        <small class="text-muted">{{ activity.duration }}</small>
+                                    </div>
+                                    <a href="{{ url_for('main.activity_detail', id=activity.id) }}" class="btn btn-outline-primary w-100">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No Activities Found</h4>
+                    <p class="text-muted">Try adjusting your preferences to see more recommendations.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recommended Guides -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="h4 mb-4">Recommended Guides</h2>
+            {% if guides %}
+                <div class="row">
+                    {% for guide in guides %}
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 guide-card">
+                            {% if guide.image_url %}
+                            <img src="{{ guide.image_url }}" class="card-img-top" alt="{{ guide.name }}">
+                            {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 150px;">
+                                <i class="fas fa-user-tie fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ guide.name }}</h5>
+                                <p class="card-text small">{{ guide.specialization }}</p>
+                                <div class="mb-2">
+                                    <div class="d-flex align-items-center">
+                                        {% for i in range(guide.rating|int) %}
+                                        <i class="fas fa-star text-warning"></i>
+                                        {% endfor %}
+                                        {% for i in range(5 - guide.rating|int) %}
+                                        <i class="far fa-star text-warning"></i>
+                                        {% endfor %}
+                                        <span class="ms-1 small">{{ guide.rating }}</span>
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ guide.experience_years }} years experience</small>
+                                <div class="mt-2">
+                                    {% if guide.is_available %}
+                                    <span class="badge bg-success">Available</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Unavailable</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ url_for('main.guide_detail', id=guide.id) }}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                                    View Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                    <h4>No Guides Found</h4>
+                    <p class="text-muted">Try adjusting your preferences to see more guide recommendations.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h3 class="h5 mb-4">How Recommendations Work</h3>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-sliders-h fa-2x text-primary mb-2"></i>
+                                <h6>Set Preferences</h6>
+                                <p class="small text-muted">Choose your preferred activity type, difficulty, duration, and budget.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-brain fa-2x text-primary mb-2"></i>
+                                <h6>AI Analysis</h6>
+                                <p class="small text-muted">Our system analyzes your preferences and booking history.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-star fa-2x text-primary mb-2"></i>
+                                <h6>Get Results</h6>
+                                <p class="small text-muted">Receive personalized recommendations for activities and guides.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

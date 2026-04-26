@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trail.name }} - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title">{{ trail.name }}</h1>
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge difficulty-badge difficulty-{{ trail.difficulty }} me-2">{{ trail.difficulty.title() }}</span>
+                        <span class="badge bg-info me-2">{{ trail.trail_type.title() }}</span>
+                    </div>
+                    
+                    <p class="card-text">{{ trail.description }}</p>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-route"></i> Length:</strong> {{ trail.length_km }} km
+                        </div>
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-clock"></i> Duration:</strong> {{ trail.estimated_duration }} hours
+                        </div>
+                        {% if trail.elevation_gain %}
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-mountain"></i> Elevation:</strong> {{ trail.elevation_gain }} m
+                        </div>
+                        {% endif %}
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-signal"></i> Difficulty:</strong> 
+                            <span class="badge difficulty-badge difficulty-{{ trail.difficulty }}">{{ trail.difficulty.title() }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if trail.start_point and trail.end_point %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-map-marker-alt"></i> Start Point:</strong> {{ trail.start_point }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="fas fa-flag-checkered"></i> End Point:</strong> {{ trail.end_point }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This trail is {{ trail.difficulty }} and suitable for 
+                        {% if trail.difficulty == 'easy' %}beginners and families{% endif %}
+                        {% if trail.difficulty == 'moderate' %}experienced hikers{% endif %}
+                        {% if trail.difficulty == 'hard' %}expert hikers only{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Trail Details</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <strong>Trail Type:</strong> {{ trail.trail_type.title() }}
+                        </li>
+                        <li class="mb-2">
+                            <strong>Length:</strong> {{ trail.length_km }} km
+                        </li>
+                        <li class="mb-2">
+                            <strong>Duration:</strong> {{ trail.estimated_duration }} hours
+                        </li>
+                        {% if trail.elevation_gain %}
+                        <li class="mb-2">
+                            <strong>Elevation Gain:</strong> {{ trail.elevation_gain }} m
+                        </li>
+                        {% endif %}
+                        <li class="mb-2">
+                            <strong>Difficulty:</strong> 
+                            <span class="badge difficulty-badge difficulty-{{ trail.difficulty }}">{{ trail.difficulty.title() }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Recommended Guides</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Experienced guides for this trail:</p>
+                    <!-- You can add guide recommendations here -->
+                    <div class="text-center">
+                        <a href="{{ url_for('main.guides') }}" class="btn btn-primary">View All Guides</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

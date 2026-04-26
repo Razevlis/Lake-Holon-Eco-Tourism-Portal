@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block admin-sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_activities') }}">
+                            <i class="fas fa-hiking me-2"></i> Activities
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_guides') }}">
+                            <i class="fas fa-user-tie me-2"></i> Guides
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_bookings') }}">
+                            <i class="fas fa-calendar-check me-2"></i> Bookings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_users') }}">
+                            <i class="fas fa-users me-2"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.manage_recommendations') }}">
+                            <i class="fas fa-star me-2"></i> Recommendations
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Admin Dashboard</h1>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_users }}</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_bookings }}</h3>
+                        <p class="mb-0">Total Bookings</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_activities }}</h3>
+                        <p class="mb-0">Activities</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stats-card">
+                        <h3>{{ total_guides }}</h3>
+                        <p class="mb-0">Guides</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Booking Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="bookingStatusPieChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">User Types</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userTypePieChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Activity Categories</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="activityCategoryPieChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bookings -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Bookings</h5>
+                            <a href="{{ url_for('admin.manage_bookings') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_bookings %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Activity</th>
+                                            <th>Date</th>
+                                            <th>Participants</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for booking in recent_bookings %}
+                                        <tr>
+                                            <td>{{ booking.id }}</td>
+                                            <td>{{ booking.user.first_name }} {{ booking.user.last_name }}</td>
+                                            <td>{{ booking.activity.name }}</td>
+                                            <td>{{ booking.booking_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                            <td>{{ booking.number_of_participants }}</td>
+                                            <td>${{ booking.total_price }}</td>
+                                            <td>
+                                                <span class="booking-status status-{{ booking.status }}">
+                                                    {{ booking.status.title() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                                        Update
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li>
+                                                            <form method="POST" action="{{ url_for('admin.update_booking_status', id=booking.id) }}">
+                                                                <input type="hidden" name="status" value="confirmed">
+                                                                <button type="submit" class="dropdown-item">Confirm</button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form method="POST" action="{{ url_for('admin.update_booking_status', id=booking.id) }}">
+                                                                <input type="hidden" name="status" value="completed">
+                                                                <button type="submit" class="dropdown-item">Complete</button>
+                                                            </form>
+                                                        </li>
+                                                        <li>
+                                                            <form method="POST" action="{{ url_for('admin.update_booking_status', id=booking.id) }}">
+                                                                <input type="hidden" name="status" value="cancelled">
+                                                                <button type="submit" class="dropdown-item">Cancel</button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No recent bookings found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visitor Analytics -->
+            {% if analytics %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Visitor Analytics (Last 7 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Page Views</th>
+                                            <th>Unique Visitors</th>
+                                            <th>Bookings Made</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for analytic in analytics %}
+                                        <tr>
+                                            <td>{{ analytic.date.strftime('%Y-%m-%d') }}</td>
+                                            <td>{{ analytic.page_views }}</td>
+                                            <td>{{ analytic.unique_visitors }}</td>
+                                            <td>{{ analytic.bookings_made }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Booking Status Pie Chart
+    const bookingStatusCtx = document.getElementById('bookingStatusPieChart').getContext('2d');
+    const bookingStatusData = {{ booking_status_stats|tojson|safe }};
+    new Chart(bookingStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: bookingStatusData.map(d => d.status),
+            datasets: [{
+                data: bookingStatusData.map(d => d.count),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // User Type Pie Chart
+    const userTypeCtx = document.getElementById('userTypePieChart').getContext('2d');
+    new Chart(userTypeCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Admin Users', 'Regular Users'],
+            datasets: [{
+                data: [{{ user_type_stats.admin_users }}, {{ user_type_stats.regular_users }}],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Activity Category Pie Chart
+    const activityCategoryCtx = document.getElementById('activityCategoryPieChart').getContext('2d');
+    const activityCategoryData = {{ activity_category_stats|tojson|safe }};
+    new Chart(activityCategoryCtx, {
+        type: 'pie',
+        data: {
+            labels: activityCategoryData.map(d => d.category),
+            datasets: [{
+                data: activityCategoryData.map(d => d.count),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40',
+                    '#4CAF50',
+                    '#F44336'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Trails - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">Hiking Trails</h1>
+            <p class="lead text-muted">Explore the beautiful trails around Lake Holon</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Difficulty</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="">All Difficulties</option>
+                                {% for difficulty in difficulties %}
+                                <option value="{{ difficulty }}" {% if difficulty == current_difficulty %}selected{% endif %}>
+                                    {{ difficulty.title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ url_for('main.trails') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trails Grid -->
+    <div class="row">
+        {% for trail in trails.items %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card trail-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ trail.name }}</h5>
+                    <p class="card-text">{{ trail.description[:80] }}{% if trail.description|length > 80 %}...{% endif %}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge difficulty-badge difficulty-{{ trail.difficulty }}">{{ trail.difficulty.title() }}</span>
+                        <span class="text-muted"><i class="fas fa-route"></i> {{ trail.length_km }}km</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted"><i class="fas fa-clock"></i> {{ trail.estimated_duration }}h</span>
+                        {% if trail.elevation_gain %}
+                        <span class="text-muted"><i class="fas fa-mountain"></i> {{ trail.elevation_gain }}m</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{{ url_for('main.trail_detail', id=trail.id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if trails.pages > 1 %}
+    <nav aria-label="Trails pagination">
+        <ul class="pagination justify-content-center">
+            {% if trails.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.trails', page=trails.prev_num, difficulty=current_difficulty) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in trails.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != trails.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.trails', page=page_num, difficulty=current_difficulty) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if trails.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.trails', page=trails.next_num, difficulty=current_difficulty) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

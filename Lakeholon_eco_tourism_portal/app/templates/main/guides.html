@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Guides - Lake Holon Eco-Tourism{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">Expert Guides</h1>
+            <p class="lead text-muted">Meet our certified local guides</p>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Specialization</label>
+                            <select name="specialization" class="form-select">
+                                <option value="">All Specializations</option>
+                                {% for specialization in specializations %}
+                                <option value="{{ specialization[0] }}" {% if specialization[0] == current_specialization %}selected{% endif %}>
+                                    {{ specialization[0] }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ url_for('main.guides') }}" class="btn btn-outline-secondary ms-2">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Guides Grid -->
+    <div class="row">
+        {% for guide in guides.items %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card guide-card h-100">
+                <div class="card-body text-center">
+                    {% if guide.image_url %}
+                    <img src="{{ guide.image_url }}" class="rounded-circle mb-3" alt="{{ guide.name }}" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 100px; height: 100px;">
+                        <i class="fas fa-user fa-2x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <h5 class="card-title">{{ guide.name }}</h5>
+                    <p class="card-text">{{ guide.specialization }}</p>
+                    <div class="mb-2">
+                        {% for i in range(guide.rating|int) %}
+                        <i class="fas fa-star text-warning"></i>
+                        {% endfor %}
+                        {% if guide.rating < 5 %}
+                            {% for i in range(5 - guide.rating|int) %}
+                            <i class="far fa-star text-warning"></i>
+                            {% endfor %}
+                        {% endif %}
+                        <small class="text-muted">({{ guide.rating }})</small>
+                    </div>
+                    <p class="text-muted"><small>{{ guide.experience_years }} years experience</small></p>
+                    <a href="{{ url_for('main.guide_detail', id=guide.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if guides.pages > 1 %}
+    <nav aria-label="Guides pagination">
+        <ul class="pagination justify-content-center">
+            {% if guides.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.guides', page=guides.prev_num, specialization=current_specialization) }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in guides.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != guides.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.guides', page=page_num, specialization=current_specialization) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if guides.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.guides', page=guides.next_num, specialization=current_specialization) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

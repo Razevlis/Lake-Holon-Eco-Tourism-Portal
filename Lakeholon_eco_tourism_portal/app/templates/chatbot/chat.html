@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Lake Holon Chat Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-robot me-2"></i>
+                                Lake Holon Chat Assistant
+                            </h4>
+                            <small class="opacity-75">Your personal eco-tourism guide</small>
+                        </div>
+                        <button class="btn btn-outline-light btn-sm" onclick="clearChat()">
+                            <i class="fas fa-trash me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Chat Messages -->
+                    <div id="chatMessages" class="chat-messages" style="height: 500px; overflow-y: auto; padding: 20px;">
+                        <div class="text-center mb-4">
+                            <div class="d-inline-block p-3 bg-light rounded-circle mb-2">
+                                <i class="fas fa-robot fa-2x text-primary"></i>
+                            </div>
+                            <h5>Welcome to Lake Holon!</h5>
+                            <p class="text-muted">I'm your personal assistant for Lake Holon Eco-Tourism. Ask me anything about activities, trails, guides, accommodations, and more!</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Suggestions -->
+                    <div class="border-top p-3">
+                        <div class="mb-2">
+                            <small class="text-muted">Quick questions:</small>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2" id="suggestions">
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="What activities are available?">
+                                Activities
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="Tell me about the trails">
+                                Trails
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="How much does it cost?">
+                                Pricing
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="When is the best time to visit?">
+                                Best Time
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="Do you have guides available?">
+                                Guides
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm suggestion-btn" data-message="What accommodations are there?">
+                                Stay
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Message Input -->
+                    <div class="border-top p-3">
+                        <form id="chatForm" class="d-flex gap-2">
+                            <div class="input-group">
+                                <input type="text" 
+                                       id="messageInput" 
+                                       class="form-control" 
+                                       placeholder="Ask me about Lake Holon..." 
+                                       maxlength="500"
+                                       autocomplete="off">
+                                <button class="btn btn-primary" type="submit" id="sendBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Press Enter to send, Shift+Enter for new line
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Pro Tips
+                    </h6>
+                    <ul class="small text-muted mb-0">
+                        <li>Ask about specific activities, trails, or accommodations</li>
+                        <li>I can help with pricing and booking information</li>
+                        <li>Get weather and seasonal advice for your visit</li>
+                        <li>Learn about difficulty levels and requirements</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.chat-messages {
+    background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.message.user {
+    margin-left: auto;
+}
+
+.message-content {
+    padding: 12px 16px;
+    border-radius: 18px;
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message.bot .message-content {
+    background: #e9ecef;
+    color: #495057;
+    border-top-left-radius: 4px;
+}
+
+.message.user .message-content {
+    background: #007bff;
+    color: white;
+    border-top-right-radius: 4px;
+}
+
+.message-time {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.message.user .message-time {
+    text-align: right;
+}
+
+.typing-indicator {
+    display: none;
+    padding: 12px 16px;
+    background: #e9ecef;
+    border-radius: 18px;
+    border-top-left-radius: 4px;
+    max-width: 80px;
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6c757d;
+    margin: 0 2px;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-10px);
+    }
+}
+
+.suggestion-btn:hover {
+    background-color: #007bff !important;
+    color: white !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Custom scrollbar */
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+
+<script>
+let chatMessages = document.getElementById('chatMessages');
+let messageInput = document.getElementById('messageInput');
+let chatForm = document.getElementById('chatForm');
+let sendBtn = document.getElementById('sendBtn');
+let suggestions = document.querySelectorAll('.suggestion-btn');
+
+// Load suggestions from API
+async function loadSuggestions() {
+    try {
+        const response = await fetch('/chatbot/chat/suggestions');
+        const data = await response.json();
+        
+        // Update suggestion buttons
+        const suggestionsContainer = document.getElementById('suggestions');
+        suggestionsContainer.innerHTML = '';
+        
+        data.suggestions.forEach(suggestion => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline-secondary btn-sm suggestion-btn';
+            btn.textContent = suggestion;
+            btn.setAttribute('data-message', suggestion);
+            btn.onclick = () => sendMessage(suggestion);
+            suggestionsContainer.appendChild(btn);
+        });
+    } catch (error) {
+        console.error('Error loading suggestions:', error);
+    }
+}
+
+// Add message to chat
+function addMessage(content, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.textContent = content;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeDiv);
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Show typing indicator
+function showTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot typing-indicator';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+    `;
+    
+    chatMessages.appendChild(typingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Hide typing indicator
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// Send message to chatbot
+async function sendMessage(message) {
+    if (!message.trim()) return;
+    
+    // Add user message
+    addMessage(message, true);
+    
+    // Clear input
+    messageInput.value = '';
+    
+    // Disable send button
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    try {
+        const response = await fetch('/chatbot/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        const data = await response.json();
+        
+        // Hide typing indicator
+        hideTypingIndicator();
+        
+        // Add bot response
+        addMessage(data.response, false);
+        
+    } catch (error) {
+        hideTypingIndicator();
+        addMessage('Sorry, I encountered an error. Please try again.', false);
+        console.error('Chat error:', error);
+    } finally {
+        // Re-enable send button
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        messageInput.focus();
+    }
+}
+
+// Clear chat
+function clearChat() {
+    if (confirm('Are you sure you want to clear the chat history?')) {
+        chatMessages.innerHTML = `
+            <div class="text-center mb-4">
+                <div class="d-inline-block p-3 bg-light rounded-circle mb-2">
+                    <i class="fas fa-robot fa-2x text-primary"></i>
+                </div>
+                <h5>Welcome to Lake Holon!</h5>
+                <p class="text-muted">I'm your personal assistant for Lake Holon Eco-Tourism. Ask me anything about activities, trails, guides, accommodations, and more!</p>
+            </div>
+        `;
+    }
+}
+
+// Event listeners
+chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendMessage(messageInput.value);
+});
+
+// Handle Enter key
+messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(messageInput.value);
+    }
+});
+
+// Suggestion buttons
+suggestions.forEach(btn => {
+    btn.addEventListener('click', () => {
+        sendMessage(btn.getAttribute('data-message'));
+    });
+});
+
+// Load suggestions on page load
+document.addEventListener('DOMContentLoaded', loadSuggestions);
+
+// Focus input on load
+messageInput.focus();
+</script>
+{% endblock %}
